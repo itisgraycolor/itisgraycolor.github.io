@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AGFN TW 확장기 • Gray Blog</title>
+  <meta name="description" content="Adversarial GFlowNet을 Time Windows로 확장한 기록" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="icon" href="data:,">
+</head>
+<body data-page="post">
+  <a class="skip" href="#content">본문 바로가기</a>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html">Gray</a>
+      <nav class="menu" aria-label="주 메뉴">
+        <a href="../index.html">Home</a>
+        <a href="../cv.html">CV</a>
+        <button class="theme-btn" type="button" data-toggle-theme>Theme</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="content" class="container" style="padding: 10px 0;">
+    <article class="card" style="padding: 0">
+      <div class="card-body">
+        <p style="margin:0 0 4px; color:var(--muted); font-size:14px">
+          <time datetime="2025-09-08">2025-09-08</time> · <span class="pill">TSP/VRP</span>
+        </p>
+        <h1 style="margin:6px 0 12px; font-size:28px">AGFN: Time Windows 확장</h1>
+
+        <h3>Goal</h3>
+        <p>AGFN(Adversarial GFlowNet) 프레임워크를 VRP의 Time Windows(TW) 제약으로 확장.</p>
+
+        <h3>Key idea</h3>
+        <ul class="bullets">
+          <li>state s에 대해 feasible mask M(s)로 TW 위반을 사전 차단</li>
+          <li>trajectory balance로 forward/backward flow 일치, reward는 route 비용의 음수 지수 형태 R = exp(−α·cost)</li>
+          <li>discriminator로 heuristic target 분포 보정</li>
+        </ul>
+
+        <h3>Pseudo</h3>
+        <pre><code>// feasible mask (TW)
+            M(s, i) = [arrival_time_i ≤ l_i] ∧ [service_window_ok]
+
+            // sampling
+            a ~ πθ(a|s) ∝ Fθ(s→s')
+            s ← s'
+
+            // reward
+            R = exp(−α · total_cost(s_T))
+            L_TB = (log Fθ(forward) − log Fθ(backward) − log R)^2
+        </code></pre>
+
+        <h3>Notes</h3>
+        <ul class="bullets">
+          <li>mask가 전부 0이면 depot로 강제 복귀</li>
+          <li>α 스케줄은 warmup 후 cosine decay</li>
+          <li>실험 세팅과 seed를 함께 공개해 재현성 확보</li>
+        </ul>
+
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="y"></span> Gray</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+    (function () {
+      const saved = localStorage.getItem('theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      document.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-toggle-theme]');
+        if (!btn) return;
+        const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', cur);
+        localStorage.setItem('theme', cur);
+      });
+    })();
+  </script>
+</body>
+</html>
